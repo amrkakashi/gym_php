@@ -2,7 +2,7 @@
 header('Content-Type: application/json');
 require_once '../config/database.php';
 
-// تحميل المكتبة بالترتيب الصحيح
+
 require_once '../JWT/JWTExceptionWithPayloadInterface.php';
 require_once '../JWT/BeforeValidException.php';
 require_once '../JWT/ExpiredException.php';
