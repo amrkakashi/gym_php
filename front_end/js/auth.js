@@ -1,7 +1,7 @@
 const logoutBtn = document.getElementById("logout-btn");
 const authButtons = document.getElementById("auth-buttons");
 const username = document.getElementById("username");
-
+const addButton = document.getElementById("add-link");
 function checkAuth() {
   return JSON.parse(localStorage.getItem("jwt_token")) !== null;
 }
@@ -25,6 +25,7 @@ function checkPageAccess() {
   const user = getCurrentUser();
   console.log(user);
   if (!user) {
+    addButton.style.display = "none";
     logoutBtn.style.display = "none";
     authButtons.innerHTML = `
       <a href="signin.html">Sign In</a>

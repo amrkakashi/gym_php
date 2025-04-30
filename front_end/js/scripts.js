@@ -116,3 +116,6 @@ const deleteExercise = async (id) => {
 const editExercise = async (id) => {
   window.location.href = `edit.html?id=${id}`;
 };
+if (!isUserLoggedIn) {
+  window.location.href = "signin.html";
+}
