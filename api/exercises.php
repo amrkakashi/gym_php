@@ -1,4 +1,14 @@
 <?php
+header('Access-Control-Allow-Origin: http://127.0.0.1:5500');
+header('Access-Control-Allow-Methods: POST, GET, OPTIONS, PUT, DELETE');
+header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
+header('Access-Control-Allow-Credentials: true');
+header('Content-Type: application/json');
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit();
+}
 header('Content-Type: application/json');
 require_once '../config/database.php';
 
@@ -20,7 +30,7 @@ function validateJWT() {
     $headers = getallheaders();
     if (!isset($headers['Authorization'])) {
         http_response_code(401);
-        echo json_encode(['error' => 'رمز الدخول مطلوب']);
+        echo json_encode(['error' => "Kindly provide a valid token"]);
         exit;
     }
     
@@ -29,7 +39,7 @@ function validateJWT() {
     
     if (!$jwt) {
         http_response_code(401);
-        echo json_encode(['error' => 'رمز الدخول غير صالح']);
+        echo json_encode(['error' => "Kindly provide a valid token"]);
         exit;
     }
     
@@ -38,7 +48,7 @@ function validateJWT() {
         return $decoded;
     } catch (Exception $e) {
         http_response_code(401);
-        echo json_encode(['error' => 'رمز الدخول غير صالح أو منتهي الصلاحية: ' . $e->getMessage()]);
+        echo json_encode(['error' => "Kindly provide a valid token"]);
         exit;
     }
 }
@@ -59,7 +69,7 @@ try {
                     echo json_encode($exercise);
                 } else {
                     http_response_code(404);
-                    echo json_encode(['error' => 'التمرين غير موجود']);
+                    echo json_encode(['error' => "Exercise not found"]);
                 }
             } else {
                 $stmt = $pdo->prepare("SELECT * FROM exercises WHERE user_id = ? ORDER BY created_at DESC");
@@ -86,9 +96,9 @@ try {
             ]);
             
             http_response_code(201);
-            echo json_encode([
+            echo json_encode([  
                 'id' => $pdo->lastInsertId(),
-                'message' => 'تم إنشاء التمرين بنجاح'
+                'message' => "Exercise created successfully"
             ]);
             break;
             
@@ -115,10 +125,10 @@ try {
             ]);
             
             if ($stmt->rowCount() > 0) {
-                echo json_encode(['message' => 'تم تحديث التمرين بنجاح']);
+                echo json_encode(['message' => "Exercise updated successfully"]);
             } else {
                 http_response_code(404);
-                echo json_encode(['error' => 'التمرين غير موجود أو لا تملك صلاحية التعديل']);
+                echo json_encode(['error' => 'Exercise not found or you do not have permission to modify it']);
             }
             break;
             
@@ -129,19 +139,19 @@ try {
             $stmt->execute([$data['id'], $user_id]);
             
             if ($stmt->rowCount() > 0) {
-                echo json_encode(['message' => 'تم حذف التمرين بنجاح']);
+                echo json_encode(['message' => "Exercise deleted successfully"]);
             } else {
                 http_response_code(404);
-                echo json_encode(['error' => 'التمرين غير موجود أو لا تملك صلاحية الحذف']);
+                echo json_encode(['error' => 'Exercise not found or you do not have permission to delete it']);
             }
             break;
             
         default:
             http_response_code(405);
-            echo json_encode(['error' => 'طريقة الطلب غير مدعومة']);
+            echo json_encode(['error' => "Method not allowed"]);
     }
 } catch (PDOException $e) {
     http_response_code(500);
-    echo json_encode(['error' => 'خطأ في قاعدة البيانات: ' . $e->getMessage()]);
+    echo json_encode(['error' => "Error in database: " . $e->getMessage()]);
 }
 ?>

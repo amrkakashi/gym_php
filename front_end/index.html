@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="ar" dir="ltr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GYM App</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <div class="logo">
+          <img src="./assits/logo.png" alt="GYM App Logo" />
+        </div>
+        <div id="auth-buttons">
+          
+        </div>
+        <div class="user">
+          <span class="username" id="username"></span>
+          <button class="logout-btn" id="logout-btn">Logout</button>
+        </div>
+      </header>
+      <main class="main-content" id="main-content">
+        <a href="add.html">Add New Exercise</a>
+        <div class="exercises-container" id="exercises-container"></div>
+      </main>
+      <footer></footer>
+    </div>
+    <script src="js/auth.js"></script>
+    <script src="js/scripts.js"></script>
+  </body>
+</html>
