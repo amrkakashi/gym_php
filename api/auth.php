@@ -1,154 +1,114 @@
 <?php
+// CORS Headers Configuration 
 header('Access-Control-Allow-Origin: http://127.0.0.1:5500');
-header('Access-Control-Allow-Methods: POST, GET, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
+header('Access-Control-Allow-Methods: POST, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, Authorization');
 header('Access-Control-Allow-Credentials: true');
 header('Content-Type: application/json');
 
+// Handle OPTIONS requests (CORS preflight)
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
     exit();
 }
 
+// Database configuration
 require_once '../config/database.php';
-require_once '../JWT/JWTExceptionWithPayloadInterface.php';
-require_once '../JWT/BeforeValidException.php';
-require_once '../JWT/ExpiredException.php';
-require_once '../JWT/SignatureInvalidException.php';
 require_once '../JWT/JWT.php';
 
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 
+// Secret key for JWT signing (should be strong and kept secure)
 $secret_key = "your_very_strong_secret_key_here!@#$%^&*()";
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-  $data = json_decode(file_get_contents('php://input'), true);
-  
-  $isSignup = isset($data['is_signup']) && $data['is_signup'] === true;
-  
-  if ($isSignup) {
-      if (!isset($data['username']) || !isset($data['password']) || !isset($data['email'])) {
-          http_response_code(400);
-          echo json_encode([
-              'success' => false,
-              'error' => "Username, password, and email are required"
-          ]);
-          exit;
-      }
-      
-      if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
-          http_response_code(400);
-          echo json_encode([
-              'success' => false,
-              'error' => "Invalid email format"
-          ]);
-          exit;
-      }
-  } else {
-      if (!isset($data['username']) || !isset($data['password'])) {
-          http_response_code(400);
-          echo json_encode([
-              'success' => false,
-              'error' => "Username and password are required"
-          ]);
-          exit;
-      }
-  }
+// Only allow POST requests
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    http_response_code(405); // Method Not Allowed
+    echo json_encode(['success' => false, 'error' => "Method not allowed"]);
+    exit;
+}
 
-  if ($isSignup) {
-      $stmt = $pdo->prepare("SELECT id FROM users WHERE username = ? OR email = ?");
-      $stmt->execute([$data['username'], $data['email']]);
-      
-      if ($existingUser = $stmt->fetch()) {
-          http_response_code(409);
-          $error = ($existingUser['username'] === $data['username']) ? 
-                  "Username already exists" : "Email already exists";
-          echo json_encode([
-              'success' => false,
-              'error' => $error
-          ]);
-          exit;
-      }
+// Get JSON input from request body
+$data = json_decode(file_get_contents('php://input'), true);
+// Check if this is a signup request
+$isSignup = $data['is_signup'] ?? false;
 
-      $hashedPassword = password_hash($data['password'], PASSWORD_DEFAULT);
-      $stmt = $pdo->prepare("INSERT INTO users (username, password, email) VALUES (?, ?, ?)");
-      
-      if ($stmt->execute([$data['username'], $hashedPassword, $data['email']])) {
-          $userId = $pdo->lastInsertId();
-          
-          $payload = [
-              'iss' => 'your_domain.com',
-              'iat' => time(),
-              'exp' => time() + 36000,
-              'data' => [
-                  'user_id' => $userId,
-                  'username' => $data['username'],
-                  'email' => $data['email']
-              ]
-          ];
+// Check for required fields
+if (empty($data['username']) || empty($data['password'])) {
+    http_response_code(400); // Bad Request
+    echo json_encode(['success' => false, 'error' => "Username and password are required"]);
+    exit;
+}
 
-          $jwt = JWT::encode($payload, $secret_key, 'HS256');
-          
-          echo json_encode([
-              'success' => true,
-              'message' => "Account created successfully",
-              'token' => $jwt,
-              'expires_in' => 36000,
-              'user' => [
-                  'id' => $userId,
-                  'username' => $data['username'],
-                  'email' => $data['email']
-              ]
-          ]);
-      } else {
-          http_response_code(500);
-          echo json_encode([
-              'success' => false,
-              'error' => "Error creating account"
-          ]);
-      }
-  }else {
+// Main Authentication Logic
+try {
+    if ($isSignup) {
+        // SIGNUP PROCESS
+        // Check if username already exists
+        $stmt = $pdo->prepare("SELECT id FROM users WHERE username = ?");
+        $stmt->execute([$data['username']]);
+        
+        if ($stmt->fetch()) {
+            http_response_code(409); // Conflict
+            throw new Exception("Username already exists");
+        }
+
+        // Create new user with hashed password
+        $stmt = $pdo->prepare("INSERT INTO users (username, password) VALUES (?, ?)");
+        $stmt->execute([
+            $data['username'], 
+            password_hash($data['password'], PASSWORD_DEFAULT) // Secure password hashing
+        ]);
+        $userId = $pdo->lastInsertId();
+        $message = "Account created successfully";
+    } else {
+        // LOGIN PROCESS
+        // Find user by username
         $stmt = $pdo->prepare("SELECT id, username, password FROM users WHERE username = ?");
         $stmt->execute([$data['username']]);
         $user = $stmt->fetch();
 
-        if ($user && password_verify($data['password'], $user['password'])) {
-            $payload = [
-                'iss' => 'your_domain.com',
-                'iat' => time(),
-                'exp' => time() + 36000,
-                'data' => [
-                    'user_id' => $user['id'],
-                    'username' => $user['username']
-                ]
-            ];
-
-            $jwt = JWT::encode($payload, $secret_key, 'HS256');
-            
-            echo json_encode([
-                'success' => true,
-                'message' => "Login successful",
-                'token' => $jwt,
-                'expires_in' => 36000,
-                'user' => [
-                    'id' => $user['id'],
-                    'username' => $user['username']
-                ]
-            ]);
-        } else {
-            http_response_code(401);
-            echo json_encode([
-                'success' => false,
-                'error' => "Invalid login credentials"
-            ]);
+        // Verify credentials
+        if (!$user || !password_verify($data['password'], $user['password'])) {
+            http_response_code(401); // Unauthorized
+            throw new Exception("Invalid login credentials");
         }
+        $userId = $user['id'];
+        $message = "Login successful";
     }
-} else {
-    http_response_code(405);
+
+    // JWT TOKEN GENERATION
+    $payload = [
+        'iss' => 'your_domain.com', // Token issuer
+        'iat' => time(), // Issued at time
+        'exp' => time() + 36000, // Expiration time (10 hours)
+        'data' => [ // Custom payload data
+            'user_id' => $userId,
+            'username' => $data['username']
+        ]
+    ];
+
+    // Generate signed JWT token
+    $jwt = JWT::encode($payload, $secret_key, 'HS256');
+    
+    // SUCCESS RESPONSE
     echo json_encode([
-        'success' => false,
-        'error' => "Method not allowed"
+        'success' => true,
+        'message' => $message,
+        'token' => $jwt, // The JWT token for client-side storage
+        'expires_in' => 36000, // Token lifetime in seconds
+        'user' => [ // Basic user info
+            'id' => $userId, 
+            'username' => $data['username']
+        ]
+    ]);
+
+} catch (Exception $e) {
+    // ERROR HANDLING
+    // Catch any exceptions and return error response
+    echo json_encode([
+        'success' => false, 
+        'error' => $e->getMessage()
     ]);
 }
-?>
