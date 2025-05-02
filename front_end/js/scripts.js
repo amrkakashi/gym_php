@@ -1,5 +1,5 @@
 // API Configuration
-const API_URL = "http://localhost/gym_php/api/exercises.php";
+const API_URL = "http://localhost/gym_project/api/exercises.php";
 const token = localStorage.getItem("jwt_token");
 
 // Fetches and displays all exercises from the API

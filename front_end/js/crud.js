@@ -1,4 +1,4 @@
-const API_BASE_URL = "http://localhost/gym_php/api/exercises.php";
+const API_BASE_URL = "http://localhost/gym_project/api/exercises.php";
 
 // Check authentication status
 if (!localStorage.getItem("jwt_token")) {

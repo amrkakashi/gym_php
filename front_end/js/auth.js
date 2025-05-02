@@ -3,7 +3,7 @@ const logoutBtn = document.getElementById("logout-btn") || null;
 const authButtons = document.getElementById("auth-buttons") || null;
 const usernameDisplay = document.getElementById("username") || null;
 const addButton = document.getElementById("add-link") || null;
-const authApiUrl = "http://localhost/gym_php/api/auth.php"; // API endpoint for authentication
+const authApiUrl = "http://localhost/gym_project/api/auth.php"; // API endpoint for authentication
 
 // Check if user is authenticated by verifying JWT token in localStorage
 function checkAuthStatus() {
