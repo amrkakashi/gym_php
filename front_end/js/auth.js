@@ -10,14 +10,10 @@ function checkAuthStatus() {
   return localStorage.getItem("jwt_token") !== null;
 }
 
-
-
 // Get current user data from localStorage
 function getCurrentUserData() {
   return {
     username: localStorage.getItem("username"),
-    userId: localStorage.getItem("user_id"),
-    token: localStorage.getItem("jwt_token"),
   };
 }
 
@@ -30,14 +26,6 @@ function verifyPageAccess() {
     // Hide add button and logout button if they exist
     if (addButton) addButton.style.display = "none";
     if (logoutBtn) logoutBtn.style.display = "none";
-
-    // Show login/signup buttons
-    if (authButtons) {
-      authButtons.innerHTML = `
-        <a href="signin.html" class="auth-link"> login</a>
-        <a href="signup.html" class="auth-link"> sign up </a>
-      `;
-    }
   } else {
     // If user is logged in
     // Display welcome message with username
@@ -142,13 +130,13 @@ document
       });
 
       const responseData = await response.json();
-
+      console.log(responseData);
       // Handle API errors
       if (!response.ok) {
         throw new Error(responseData.error || "Failed to sign up");
       }
 
-      // Verify token exists in response
+      // // Verify token exists in response
       if (!responseData.token) {
         throw new Error("invalid credentials");
       }

@@ -51,21 +51,10 @@ const fetchExercisesData = async () => {
 
 const deleteExercise = async (id) => {
   // Confirmation dialog
-  const result = await Swal.fire({
-    title: "Are you sure?",
-    text: "You won't be able to revert this!",
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonText: "Yes, delete it!",
-    cancelButtonText: "Cancel",
-    reverseButtons: true,
-    customClass: {
-      confirmButton: "btn btn-success",
-      cancelButton: "btn btn-danger",
-    },
-  });
-
-  if (result.isConfirmed) {
+  const confirmDelete = confirm(
+    "Are you sure you want to delete this exercise?"
+  );
+  if (confirmDelete) {
     try {
       const response = await fetch(API_URL, {
         method: "DELETE",
@@ -79,10 +68,8 @@ const deleteExercise = async (id) => {
       if (!response.ok) throw new Error("Failed to delete exercise");
       // Refresh exercises list after deletion
       fetchExercisesData();
-      Swal.fire("Deleted!", "Exercise has been deleted.", "success");
     } catch (error) {
       console.error("Error:", error);
-      Swal.fire("Error!", "Failed to delete exercise", "error");
     }
   }
 };

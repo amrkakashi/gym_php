@@ -5,15 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>GYM App - Edit Exercise</title>
     <link rel="stylesheet" href="css/style.css" />
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
   </head>
   <body>
     <div class="container">
       <header>
-        <div id="auth-buttons">
-          
-        </div>
+        <div id="auth-buttons"></div>
         <div class="user">
           <span class="username" id="username"></span>
           <button class="btn" id="logout-btn">Logout</button>
@@ -24,7 +20,7 @@
         <form id="edit-form">
           <div class="form-group">
             <label for="name">Exercise Name</label>
-            <input type="text" id="name" required>
+            <input type="text" id="name" required />
           </div>
           <div class="form-group">
             <label for="description">Description</label>
@@ -33,7 +29,7 @@
           <div class="form-group">
             <label for="muscle_group">Muscle Group</label>
             <select id="muscle_group" required>
-              <option disabled value=""> Select </option>
+              <option disabled value="">Select</option>
               <option selected value="chest">Chest</option>
               <option value="back">Back</option>
               <option value="shoulders">Shoulders</option>
@@ -45,7 +41,7 @@
           <div class="form-group">
             <label for="difficulty_level">Difficulty Level</label>
             <select id="difficulty_level" required>
-              <option disabled value=""> Select </option>
+              <option disabled value="">Select</option>
               <option selected value="easy">Easy</option>
               <option value="medium">Medium</option>
               <option value="hard">Hard</option>
@@ -53,11 +49,10 @@
           </div>
           <div class="form-group">
             <label for="equipment_needed">Equipment Needed</label>
-            <input type="text" id="equipment_needed" required>
+            <input type="text" id="equipment_needed" required />
           </div>
           <button type="submit" class="btn">Edit</button>
         </form>
-        
       </main>
       <footer></footer>
     </div>
